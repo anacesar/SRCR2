@@ -138,21 +138,21 @@ maisPontos(Origem,Destino):-
 % A quantidade recolhida: quantidade de resíduos recolhidos durante o circuito;
 % A distância média percorrida entre pontos de recolha.
 compCircuito(Origem,Destino, [Origem|Caminho], Distancia,QLixo) :-                           
-    compCircuitoAux(Origem, Destino,Caminho, Distancia,[],QLixo).   
+    compCircuitoAux(Origem, Destino,Caminho, Distancia,[],[]).   
 
 somaLixo([],[]).
-somaLixo([(T,Cap,Quant)|L],R):-
-append([(T,(Cap*Quant))],R,K).
+somaLixo([(T,Cap,Quant)|L],[(T,C2)|K]):-
+C2 is Cap*Quant,
 somaLixo(L,K).
 
-compCircuitoAux(Dest, Dest, [], _ , 0 , _,_) .
-compCircuitoAux(Origem, Dest, [Prox|Caminho], Distancia, Visitados,QLixo) :-
+compCircuitoAux(Dest, Dest, [], _ , 0 , _,[]) .
+compCircuitoAux(Origem, Dest, [Prox|Caminho], Distancia, Visitados,[K|QLixo]) :-
     Origem \== Dest,                                                                     
     adjacente(Origem,Prox,Dist1),                                     
     nao(member(Prox,Visitados)),
-    ponto_recolha(Origem,_,_,[L]),   
-    QLixo1 is QLixo + (Capacidade*NC),
-    compCircuitoAux(Prox, Dest, Caminho, Dist2,[Origem | Visitados],QLixo1),
+    ponto_recolha(Origem,_,_,L),   
+    somaLixo(L,K),
+    compCircuitoAux(Prox, Dest, Caminho, Dist2,[Origem | Visitados],QLixo),
     Distancia is Dist1 + Dist2.
 
 todosComp(Origem,Destino):-
