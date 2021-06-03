@@ -36,17 +36,17 @@ def buildDataset():
     with open("pontos_recolha.pl", "w+") as f:
         for morada,info in pontos_recolha.items():
             #print(morada)
-            str = "pontos_recolha('" + info[0] + "','" + morada + "',["
+            str = "ponto_recolha(" + info[0] + ",'" + morada + "','" + info[1] + "',["
             for index, contentor in enumerate(info[2], start=0):
                 if index == len(info[2]) - 1:
-                    str += "('" + contentor[0] + "','" + contentor[1] + "','" + contentor[2] + "')].\n"
+                    str += "('" + contentor[0] + "'," + contentor[1] + "," + contentor[2] + ")]).\n"
                 else:
-                    str += "('" + contentor[0] + "','" + contentor[1] + "','" + contentor[2] + "'),"
+                    str += "('" + contentor[0] + "'," + contentor[1] + "," + contentor[2] + "),"
             f.write(str)
             str = ""
 
-            arcos(3, info)
-            arcos(4, info)
+            #arcos(3, info)
+            #arcos(4, info)
     f.close()
 
 def buildInfo(info):
