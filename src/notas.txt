@@ -1,0 +1,17 @@
+
+//se tiver o mesmo contentor tipo e capacidade aumentamos a quantidade 
+contentor(tipo, capacidade) 
+
+ponto_contentor(idpr, idtipo, quantidade, total_litro).
+
+ponto_recolha(morada, idpr, freguesia, [(tipo, capacidade,quantidade)]).
+
+/* moradas como nodos, se for par --> */
+arco(pr_origem, pr_destino, distancia).
+
+Exemplo: 
+
+-9.143308809,38.70807879,355,Misericórdia,15805: R do Alecrim (Par (->)(26->30): R Ferragial - R Ataíde),Lixos,CV0090,90,1,90
+-9.143308809,38.70807879,356,Misericórdia,15805: R do Alecrim (Par (->)(26->30): R Ferragial - R Ataíde),Lixos,CV0240,240,7,1680
+
+ponto_recolha("R do Alecrim", 15805, )
