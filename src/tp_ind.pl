@@ -42,6 +42,23 @@ ponto_recolha(S) :- solucoes((Pid,NomeRua,Freguesia,C),ponto_recolha(Pid,NomeRua
 arco(S):- solucoes((IdO,IdD,Distancia),arco(IdO,IdD,Distancia),S).
 
 %---------------------------------------------------------------------
+%    MAKING MERDA
+%---------------------------------------------------------------------
+% ponto_recolha(1,"Tv Corpo Santo","Misericórdia",[("Lixos",10,8),("Papel",10,2)]).
+% ponto_recolha(2,"R Corpo Santo","Misericórdia",[("Lixos",10,7)]).
+% ponto_recolha(3,"R Bernardino da Costa","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
+% ponto_recolha(4,"Lg Corpo Santo","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
+% ponto_recolha(5,"Pc Duque da Terceira","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
+% 
+% arco(1,2,20).
+% arco(1,3,10).
+% arco(1,4,50).
+% arco(2,4,10).
+% arco(3,4,10).
+% arco(4,5,30).
+
+
+%---------------------------------------------------------------------
 %    Não Informada
 %---------------------------------------------------------------------
 
@@ -86,7 +103,7 @@ getPonto(Origem,Prox,Tipo_Lixo,Distancia):-
 
 todosLixo(Origem,Destino,[Tipo_Lixo]):-
     findall((S,Distancia),lixo(Origem,Destino,S,[Tipo_Lixo],Distancia),L),
-    escrever(L). % print listas
+    escrever(L).% print listas
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Identificar quais os circuitos com mais pontos de recolha (por tipo de resíduo a recolher)
