@@ -4,8 +4,13 @@
 
 :-op( 900,xfy,'::' ).
 :-dynamic ponto_recolha/4, arco/3.
+<<<<<<< Updated upstream
 % :- include("pontos_recolha.pl").
 % :- include("arcos.pl").
+=======
+%:- include("pontos_recolha.pl").
+%:- include("arcos.pl").
+>>>>>>> Stashed changes
 
 %---------------------------------------------------------------------
 %         AUXILIARES BASE
@@ -56,6 +61,10 @@ arco(S):- solucoes((IdO,IdD,Distancia),arco(IdO,IdD,Distancia),S).
  arco(2,4,10).
  arco(3,4,10).
  arco(4,5,30).
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 %---------------------------------------------------------------------
 %    Não Informada
 %---------------------------------------------------------------------
@@ -139,22 +148,41 @@ maisPontos(Origem,Destino):-
 % A quantidade recolhida: quantidade de resíduos recolhidos durante o circuito;
 % A distância media percorrida entre pontos de recolha.
 compCircuito(Origem,Destino, [Origem|Caminho], Distancia,QLixo) :-                           
-    compCircuitoAux(Origem, Destino,Caminho, Distancia,[],[]).   
+    compCircuitoAux(Origem, Destino,Caminho, Distancia,[],QLixo).   
 
 somaLixo([],[]).
 somaLixo([(T,Cap,Quant)|L],[(T,C2)|K]):-
 C2 is Cap*Quant,
 somaLixo(L,K).
 
-compCircuitoAux(Dest, Dest, [], _ , 0 , _,[]) .
-compCircuitoAux(Origem, Dest, [Prox|Caminho], Distancia, Visitados,[K|QLixo]) :-
+compCircuitoAux(Dest,   Dest,      [],            0 ,        _,      []) .
+compCircuitoAux(Origem, Dest, [Prox|Caminho], Distancia, Visitados,Qlixo2) :-
     Origem \== Dest,                                                                     
     adjacente(Origem,Prox,Dist1),                                     
     nao(member(Prox,Visitados)),
     ponto_recolha(Origem,_,_,L),   
-    somaLixo(L,K),
+    somaLixo(L,K1),
+    agregaLixo(K1,K),
     compCircuitoAux(Prox, Dest, Caminho, Dist2,[Origem | Visitados],QLixo),
+    append([K,QLixo],Qlixo2),
     Distancia is Dist1 + Dist2.
+
+agregaLixo([],[]).
+agregaLixo([X],R):- append([X],[],R).
+
+agregaLixo([(T,C1),(R,C4),(T,C2)|K],[(T,C3)|L]):-
+    C3 is C1+C2,
+    agregaLixo([(R,C4)|K],L).
+
+agregaLixo([(T,C1),(R,C4),(R,C2)|K],[(R,C3)|L]):-
+    C3 is C4+C2,
+    agregaLixo([(T,C1)|K],L).
+
+agregaLixo([(T,C1),(T,C2)|K],[(T,C3)|L]):-
+    C3 is C1+C2,
+    agregaLixo(K,L).
+
+
 
 todosComp(Origem,Destino):-
     findall((S,Distancia,QLixo),compCircuito(Origem,Destino,S,Distancia,QLixo),L),
