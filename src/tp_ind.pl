@@ -4,8 +4,8 @@
 
 :-op( 900,xfy,'::' ).
 :-dynamic ponto_recolha/4, arco/3.
-:- include("pontos_recolha.pl").
-:- include("arcos.pl").
+% :- include("pontos_recolha.pl").
+% :- include("arcos.pl").
 
 %---------------------------------------------------------------------
 %         AUXILIARES BASE
@@ -44,20 +44,18 @@ arco(S):- solucoes((IdO,IdD,Distancia),arco(IdO,IdD,Distancia),S).
 %---------------------------------------------------------------------
 %    MAKING MERDA
 %---------------------------------------------------------------------
-% ponto_recolha(1,"Tv Corpo Santo","Misericórdia",[("Lixos",10,8),("Papel",10,2)]).
-% ponto_recolha(2,"R Corpo Santo","Misericórdia",[("Lixos",10,7)]).
-% ponto_recolha(3,"R Bernardino da Costa","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
-% ponto_recolha(4,"Lg Corpo Santo","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
-% ponto_recolha(5,"Pc Duque da Terceira","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
-% 
-% arco(1,2,20).
-% arco(1,3,10).
-% arco(1,4,50).
-% arco(2,4,10).
-% arco(3,4,10).
-% arco(4,5,30).
-
-
+ ponto_recolha(1,"Tv Corpo Santo","Misericórdia",[("Lixos",10,8),("Papel",10,2)]).
+ ponto_recolha(2,"R Corpo Santo","Misericórdia",[("Lixos",10,7)]).
+ ponto_recolha(3,"R Bernardino da Costa","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
+ ponto_recolha(4,"Lg Corpo Santo","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
+ ponto_recolha(5,"Pc Duque da Terceira","Misericórdia",[("Papel",10,1),("Lixos",10,7)]).
+ 
+ arco(1,2,20).
+ arco(1,3,10).
+ arco(1,4,50).
+ arco(2,4,10).
+ arco(3,4,10).
+ arco(4,5,30).
 %---------------------------------------------------------------------
 %    Não Informada
 %---------------------------------------------------------------------
@@ -139,7 +137,7 @@ maisPontos(Origem,Destino):-
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
 % Comparar circuitos de recolha tendo em conta os indicadores de produtividade:
 % A quantidade recolhida: quantidade de resíduos recolhidos durante o circuito;
-% A distância média percorrida entre pontos de recolha.
+% A distância media percorrida entre pontos de recolha.
 compCircuito(Origem,Destino, [Origem|Caminho], Distancia,QLixo) :-                           
     compCircuitoAux(Origem, Destino,Caminho, Distancia,[],[]).   
 
@@ -206,3 +204,79 @@ maisRapido(Origem,Destino):-
 %ponto_recolha(1,"Tv Corpo Santo","Misericórdia",[("Lixos",10,8),("Papel",10,2)]).
 
 %total_lixo is total_lixo+
+
+%----------------------------------------------------------------%
+%                         INFORMADA                              %
+%----------------------------------------------------------------%
+
+%-----------------------------A Estrela----------------------------------
+
+resolve_aestrela(Origem, Destino, Caminho/Custo) :- 
+    arco(Origem,Destino,Distancia),                                   
+    aestrela([[(Origem, Destino)]/0/Distancia], Caminho/Custo/_).
+    %inverso(InvCaminho, Caminho).
+
+aestrela(Caminhos, Caminho) :-
+    obtem_melhor(Caminhos, Caminho),
+    Caminho = [(Nodo, Destino)|_]/_/_,
+    Nodo == Destino.
+aestrela(Caminhos, SolucaoCaminho) :-
+    obtem_melhor(Caminhos, MelhorCaminho),
+    seleciona(MelhorCaminho, Caminhos, OutrosCaminhos),
+    expande_aestrela(MelhorCaminho, ExpCaminhos),
+    append(OutrosCaminhos, ExpCaminhos, NovoCaminhos),
+        aestrela(NovoCaminhos, SolucaoCaminho).
+
+obtem_melhor([Caminho], Caminho) :- !.
+obtem_melhor([Caminho1/Custo1/Est1,_/Custo2/Est2|Caminhos], MelhorCaminho) :-
+    Custo1 + Est1 =< Custo2 + Est2, !,
+    obtem_melhor([Caminho1/Custo1/Est1|Caminhos], MelhorCaminho).
+obtem_melhor([_|Caminhos], MelhorCaminho) :-
+    obtem_melhor(Caminhos, MelhorCaminho).
+
+expande_aestrela(Caminho, ExpCaminhos) :-
+    findall(NovoCaminho, adjacente(Caminho,NovoCaminho), ExpCaminhos).
+
+
+adjacente([(Nodo,Destino)|Caminho]/Custo/_, [(ProxNodo,Destino),(Nodo,Destino)|Caminho]/NovoCusto/Est) :-
+    arco(Nodo, ProxNodo, PassoCusto,_),
+    \+ member(ProxNodo, Caminho),
+    NovoCusto is Custo + PassoCusto,
+    distancia(ProxNodo, Destino, Est).
+
+seleciona(E, [E|Xs], Xs).
+seleciona(E, [X|Xs], [X|Ys]) :- seleciona(E, Xs, Ys).
+
+
+% Aplica o inverso a uma lista
+inverso(Xs, Ys):-
+	inverso(Xs, [], Ys).
+inverso([], Xs, Xs).
+inverso([X|Xs],Ys, Zs):-
+	inverso(Xs, [X|Ys], Zs).
+
+
+ 
+same([X],R) :- append([X],[],R).
+same([(Tipo, Q),(Tipo,Q2)|T], R) :- 
+    Q3 is Q + Q2,
+    same([(Tipo,Q3)|T], R), !.
+same([(Tipo, Q1),(Tipo2,Q2)|T], R) :- 
+    same([(Tipo,Q1)|T], R1),
+    same([(Tipo2,Q2)|T], R2),
+    append(R1,R2,R).
+
+
+% remdup(List, List_No_duplicates).
+remdup([],[]).
+remdup([X|T],Lnd):- rd1(X,T,T1,X1), remdup(T1,Tnd),Lnd=[X1|Tnd].
+
+% rd1(X,L,Lr) removes all occurance of X in List L and store result in List Lr
+rd1(X,[],[],X).    
+rd1((Tipo,Q1),[(Tipo,Q2)|T],Lx,X1):- 
+    ( Q1>=Q2 
+    -> X1 = (Tipo,Q1)
+    ;  X1 = (Tipo,Q2)
+    ), 
+    rd1(X1,T,Lx, X1), !.
+rd1(X,[Y|T],Lx,X1):-  rd1(X,T,Lx1,X1), Lx=[Y|Lx1], !.
