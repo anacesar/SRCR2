@@ -4,13 +4,8 @@
 
 :-op( 900,xfy,'::' ).
 :-dynamic ponto_recolha/4, arco/3.
-<<<<<<< Updated upstream
 % :- include("pontos_recolha.pl").
 % :- include("arcos.pl").
-=======
-%:- include("pontos_recolha.pl").
-%:- include("arcos.pl").
->>>>>>> Stashed changes
 
 %---------------------------------------------------------------------
 %         AUXILIARES BASE
@@ -61,10 +56,6 @@ arco(S):- solucoes((IdO,IdD,Distancia),arco(IdO,IdD,Distancia),S).
  arco(2,4,10).
  arco(3,4,10).
  arco(4,5,30).
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 %---------------------------------------------------------------------
 %    Não Informada
 %---------------------------------------------------------------------
@@ -155,34 +146,49 @@ somaLixo([(T,Cap,Quant)|L],[(T,C2)|K]):-
 C2 is Cap*Quant,
 somaLixo(L,K).
 
-compCircuitoAux(Dest,   Dest,      [],            0 ,        _,      []) .
+compCircuitoAux(Dest, Dest, [] , 0 ,_, Qlixo):-
+    ponto_recolha(Dest,_,_,L),
+    somaLixo(L,K1),
+    append([K1,[]],R1),
+    same(R1,R2),
+    remdup(R2,Qlixo).
 compCircuitoAux(Origem, Dest, [Prox|Caminho], Distancia, Visitados,Qlixo2) :-
     Origem \== Dest,                                                                     
     adjacente(Origem,Prox,Dist1),                                     
     nao(member(Prox,Visitados)),
     ponto_recolha(Origem,_,_,L),   
     somaLixo(L,K1),
-    agregaLixo(K1,K),
+    same(K1,K),
     compCircuitoAux(Prox, Dest, Caminho, Dist2,[Origem | Visitados],QLixo),
-    append([K,QLixo],Qlixo2),
+    append([K,QLixo],R1),
+    same(R1,R2),
+    remdup(R2,Qlixo2),
     Distancia is Dist1 + Dist2.
 
-agregaLixo([],[]).
-agregaLixo([X],R):- append([X],[],R).
 
-agregaLixo([(T,C1),(R,C4),(T,C2)|K],[(T,C3)|L]):-
-    C3 is C1+C2,
-    agregaLixo([(R,C4)|K],L).
-
-agregaLixo([(T,C1),(R,C4),(R,C2)|K],[(R,C3)|L]):-
-    C3 is C4+C2,
-    agregaLixo([(T,C1)|K],L).
-
-agregaLixo([(T,C1),(T,C2)|K],[(T,C3)|L]):-
-    C3 is C1+C2,
-    agregaLixo(K,L).
+same([X],R) :- append([X],[],R).
+same([(Tipo, Q),(Tipo,Q2)|T], R) :- 
+    Q3 is Q + Q2,
+    same([(Tipo,Q3)|T], R), !.
+same([(Tipo, Q1),(Tipo2,Q2)|T], R) :- 
+    same([(Tipo,Q1)|T], R1),
+    same([(Tipo2,Q2)|T], R2),
+    append(R1,R2,R).
 
 
+% remdup(List, List_No_duplicates).
+remdup([],[]).
+remdup([X|T],Lnd):- rd1(X,T,T1,X1), remdup(T1,Tnd),Lnd=[X1|Tnd].
+
+% rd1(X,L,Lr) removes all occurance of X in List L and store result in List Lr
+rd1(X,[],[],X).    
+rd1((Tipo,Q1),[(Tipo,Q2)|T],Lx,X1):- 
+    ( Q1>=Q2 
+    -> X1 = (Tipo,Q1)
+    ;  X1 = (Tipo,Q2)
+    ), 
+    rd1(X1,T,Lx, X1), !.
+rd1(X,[Y|T],Lx,X1):-  rd1(X,T,Lx1,X1), Lx=[Y|Lx1], !.
 
 todosComp(Origem,Destino):-
     findall((S,Distancia,QLixo),compCircuito(Origem,Destino,S,Distancia,QLixo),L),
@@ -218,20 +224,42 @@ maisRapido(Origem,Destino):-
     escrever(R).
 
 %--------------------------------- - - - - - - - - - -  -  -  -  -   -
-% Escolher o circuito mais eficiente (usando um critério de eficiência à escolha) - menos distância , mais lixo
+% Escolher o circuito mais eficiente (usando um critério de eficiência à escolha)
+% - menos distância entre pontos de recolha , mais lixo
 
+maisEficiente(Origem,Destino, [Origem|Caminho], Distancia,QLixo):-
+    maisEficienteAux(Origem, Destino,Caminho, Distancia,[],QLixo).
 
+maisEficienteAux(Dest, Dest, [] , 0 ,_, Qlixo):-
+    ponto_recolha(Dest,_,_,L),
+    somaLixo(L,K1),
+    append([K1,[]],R1),
+    same(R1,R2),
+    remdup(R2,Qlixo).
+maisEficienteAux(Origem, Dest, [Prox|Caminho], Distancia, Visitados,Qlixo2):-
+    Origem \== Dest,                                                                     
+    findall((Prox,Dist1),adjacente(Origem,Prox,Dist1),S),
+    minimo6(S,Dist_min),
+    filter6(S,Dist_min,[(Prox,Dist1)]),
+    ponto_recolha(Origem,_,_,L),   
+    somaLixo(L,K1),
+    same(K1,K),
+    maisEficienteAux(Prox, Dest, Caminho, Dist2,[Origem | Visitados],QLixo),
+    append([K,QLixo],R1),
+    same(R1,R2),
+    remdup(R2,Qlixo2),
+    Distancia is Dist1 + Dist2.
 
+%somaQLixo([],0).
+%somaQLixo([(_,Q)],Q).
+%somaQLixo([(_,Q),(_,Q1)|T],S):- 
+%    R is Q + Q1,
+%    somaQLixo([(_,R)|T],S).
 
-%maisEficiente(Origem,Destino):-
-%    findall((S,Distancia),trajeto(Origem,Destino,S,Distancia),L).
+todosEficiente(Origem,Destino):-
+    findall((S,Distancia,QLixo),maisEficiente(Origem,Destino,S,Distancia,QLixo),L),
     
-    %minimo6(L,Dist),
-    %filter6(L,Dist,R),
-
-%ponto_recolha(1,"Tv Corpo Santo","Misericórdia",[("Lixos",10,8),("Papel",10,2)]).
-
-%total_lixo is total_lixo+
+    escrever(L).
 
 %----------------------------------------------------------------%
 %                         INFORMADA                              %
@@ -267,7 +295,7 @@ expande_aestrela(Caminho, ExpCaminhos) :-
 
 
 adjacente([(Nodo,Destino)|Caminho]/Custo/_, [(ProxNodo,Destino),(Nodo,Destino)|Caminho]/NovoCusto/Est) :-
-    arco(Nodo, ProxNodo, PassoCusto,_),
+    arco(Nodo, ProxNodo, PassoCusto),
     \+ member(ProxNodo, Caminho),
     NovoCusto is Custo + PassoCusto,
     distancia(ProxNodo, Destino, Est).
@@ -283,28 +311,3 @@ inverso([], Xs, Xs).
 inverso([X|Xs],Ys, Zs):-
 	inverso(Xs, [X|Ys], Zs).
 
-
- 
-same([X],R) :- append([X],[],R).
-same([(Tipo, Q),(Tipo,Q2)|T], R) :- 
-    Q3 is Q + Q2,
-    same([(Tipo,Q3)|T], R), !.
-same([(Tipo, Q1),(Tipo2,Q2)|T], R) :- 
-    same([(Tipo,Q1)|T], R1),
-    same([(Tipo2,Q2)|T], R2),
-    append(R1,R2,R).
-
-
-% remdup(List, List_No_duplicates).
-remdup([],[]).
-remdup([X|T],Lnd):- rd1(X,T,T1,X1), remdup(T1,Tnd),Lnd=[X1|Tnd].
-
-% rd1(X,L,Lr) removes all occurance of X in List L and store result in List Lr
-rd1(X,[],[],X).    
-rd1((Tipo,Q1),[(Tipo,Q2)|T],Lx,X1):- 
-    ( Q1>=Q2 
-    -> X1 = (Tipo,Q1)
-    ;  X1 = (Tipo,Q2)
-    ), 
-    rd1(X1,T,Lx, X1), !.
-rd1(X,[Y|T],Lx,X1):-  rd1(X,T,Lx1,X1), Lx=[Y|Lx1], !.
